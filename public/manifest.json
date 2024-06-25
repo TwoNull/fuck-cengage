@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
 
-  "name": "Chrome Extension TypeScript Starter",
-  "description": "Chrome Extension, TypeScript, Visual Studio Code",
+  "name": "Evil Cengage",
+  "description": "Chrome Extension to lift PDFs from Cengage E-Books quickly",
   "version": "1.0",
 
   "options_ui": {
