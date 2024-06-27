@@ -25,3 +25,4 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
     }
     sendResponse();
 })
+

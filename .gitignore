@@ -127,7 +127,7 @@ dist
 .pnp.*
 
 # testing
-/test
+test/
 
 # MacOS
 .DS_Store
