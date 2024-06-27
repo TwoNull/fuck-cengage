@@ -9,3 +9,18 @@ export function parseCookies(headers: string[]): {[key: string]: string} {
     return cookies
 }
   
+export function sanitizePath(path: string): string {
+    const parts = path.split('/');
+    const result: string[] = [];
+  
+    for (const part of parts) {
+        if (part === '..') {
+            result.pop();
+        } else if (part !== '.') {
+            result.push(part);
+        }
+    }
+  
+    return result.join('/');
+}
+  
