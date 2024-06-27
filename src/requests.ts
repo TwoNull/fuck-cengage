@@ -91,27 +91,26 @@ export async function getBookData(bookId: string, authorization: string) {
 export async function getStructure(kpId: string, signature: string, bookId: string, version: string, expiry: string) {
     const res = await axios.get(`https://dmklkswnvk9qg.cloudfront.net/content/${bookId}/${version}/book-encrypted/structure.json`, {
         params: {
-            'Expires': expiry,
-            'Key-Pair-Id': kpId,
-            'Signature': signature
+          'Expires': expiry,
+          'Key-Pair-Id': kpId,
+          'Signature': signature,
         },
         headers: {
-            'Host': 'dmklkswnvk9qg.cloudfront.net',
-            'Connection': 'keep-alive',
-            'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-            'X-GT-Client-Name': 'wr3',
-            'sec-ch-ua-mobile': '?0',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-            'X-GT-Locale': 'en',
-            'Accept': 'application/json, text/plain, */*',
-            'X-GT-Client-Version': '6c15ed2',
-            'sec-ch-ua-platform': '"macOS"',
-            'Sec-Fetch-Site': 'cross-site',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Dest': 'empty',
-            'Accept-Language': 'en-US,en;q=0.9'
+          'Accept': 'application/json, text/plain, */*',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Connection': 'keep-alive',
+          'Sec-Fetch-Dest': 'empty',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'cross-site',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+          'X-GT-Client-Name': 'wr3',
+          'X-GT-Client-Version': '6c15ed2',
+          'X-GT-Locale': 'en',
+          'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"macOS"'
         }
-    })
+    });      
     if (res.status === 200) {
         return res.data
     }

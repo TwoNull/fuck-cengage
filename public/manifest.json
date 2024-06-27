@@ -26,7 +26,7 @@
   },
 
   "permissions": [
-    "<all_urls>","webRequest"
+    "<all_urls>","webRequest","tabs"
   ],
 
   "host_permissions": [
