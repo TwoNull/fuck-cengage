@@ -10,51 +10,6 @@ export async function getBookId(isbn: string) {
     return null
 }
 
-export async function getAuthorization(launchUrl: string) {
-    let authHeader: string = ""
-    let cookies: string[] = []
-
-    function reqListener(details: chrome.webRequest.WebRequestHeadersDetails) {
-        console.log(details)
-        for(let i = 0; i < details.requestHeaders!.length; i++) {
-            if (details.requestHeaders![i].name === "authorization") {
-                authHeader = details.requestHeaders![i].value!
-            }
-        }
-    }
-
-    const tab = await chrome.tabs.create({ url: launchUrl })
-
-    await new Promise<void>((resolve) => {
-        chrome.webRequest.onSendHeaders.addListener(
-            reqListener,
-            { urls: ['https://ebooks.cenreader.com/v1/reader/users/get-cloudfront-signed-cookies'], tabId: tab.id },
-            ['requestHeaders']
-        )
-        chrome.webRequest.onHeadersReceived.addListener(
-            function resListener(details) {
-                console.log(details)
-                if (details.statusCode === 200) {
-                    for(let i = 0; i < details.responseHeaders!.length; i++) {
-                        if (details.responseHeaders![i].name === "Set-Cookie") {
-                            cookies.push(details.responseHeaders![i].value!)
-                        }
-                    }
-                    chrome.webRequest.onSendHeaders.removeListener(reqListener)
-                    chrome.webRequest.onHeadersReceived.removeListener(resListener)
-                    resolve()
-                }
-            },
-            { urls: ['https://ebooks.cenreader.com/v1/reader/users/get-cloudfront-signed-cookies'], tabId: tab.id },
-            ['responseHeaders','extraHeaders']
-        )
-    })
-   
-    await chrome.tabs.remove(tab.id!)
-
-    return {auth: authHeader, cookies: cookies}
-}
-
 export async function getBookData(bookId: string, auth: string) {
     const res = await axios.get('https://hapi.hapicen.com/v2/reader/books/store', {
         params: {
@@ -107,32 +62,6 @@ export async function getStructure(kpId: string, signature: string, policy: stri
             'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"macOS"',
-        }
-    })
-    if (res.status === 200) {
-        return res.data
-    }
-    return null
-}
-
-export async function getAsset(kpId: string, signature: string, policy: string, bookId: string, version: string, path: string) {
-    const res = await axios.get(`https://ebooks.cenreader.com/v1/reader/stream/${bookId}/${version}/${path}`, {
-        responseType: "arraybuffer",
-        headers: {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Connection': 'keep-alive',
-            'Cookie': `CloudFront-Key-Pair-Id=${kpId}; CloudFront-Policy=${policy}; CloudFront-Signature=${signature}`,
-            'Referer': 'https://ebooks.cenreader.com/',
-            'Sec-Fetch-Dest': 'iframe',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'same-origin',
-            'Sec-Fetch-User': '?1',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-            'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"macOS"'
         }
     })
     if (res.status === 200) {

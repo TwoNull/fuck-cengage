@@ -1,35 +1,36 @@
 {
-  "manifest_version": 3,
+    "manifest_version": 3,
 
-  "name": "Evil Cengage",
-  "description": "Chrome Extension to lift PDFs from Cengage E-Books quickly",
-  "version": "1.0",
+    "name": "Evil Cengage",
+    "description": "Chrome Extension to lift PDFs from Cengage E-Books quickly",
+    "version": "1.0",
 
-  "options_ui": {
-    "page": "options.html"
-  },
+    "action": {
+        "default_icon": "icon.png",
+        "default_popup": "popup.html"
+    },
 
-  "action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
-  },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["js/content.js"]
+        }
+    ],
 
-  "content_scripts": [
-      {
-          "matches": ["<all_urls>"],
-          "js": ["js/vendor.js"]
-      }
-  ],
+    "background": {
+        "service_worker": "js/background.js"
+    },
 
-  "background": {
-    "service_worker": "js/background.js"
-  },
+    "permissions": [
+        "webRequest","tabs","scripting"
+    ],
 
-  "permissions": [
-    "<all_urls>","webRequest","tabs"
-  ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
 
-  "host_permissions": [
-    "<all_urls>"
-  ]
+    "web_accessible_resources": [{
+        "resources": ["js/content.js"],
+        "matches": ["<all_urls>"]
+    }]
 }

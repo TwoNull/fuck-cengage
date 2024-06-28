@@ -1,22 +1,9 @@
 import jsPDF from 'jspdf'
-import { sanitizeCssPath, sanitizePath } from '../helper'
 
 export class Builder {
-    private kpId: string
-    private signature: string
-    private policy: string
-    private bookId: string
-    private version: string
-    private assetCache: {[key: string]: string}
     private pages: Document[]
 
-    constructor(kpId: string, signature: string, policy: string, bookId: string, version: string) {
-        this.kpId = kpId
-        this.signature = signature
-        this.policy = policy
-        this.bookId = bookId
-        this.version = version
-        this.assetCache = {}
+    constructor() {
         this.pages = []
     }
 
@@ -29,10 +16,16 @@ export class Builder {
             format: "letter",
         })
 
+        console.log(this.pages[0].URL)
+
+        console.log(this.pages[0].location)
+
         console.log(this.pages[0].documentElement)
     
         doc.html(this.pages[0].documentElement, {
             html2canvas: {
+                allowTaint: true,
+                useCORS: true,
                 width: 2550,
                 height: 3000,
                 windowWidth: 2550,
@@ -41,8 +34,11 @@ export class Builder {
             windowWidth: 2550,
             width: 2550,
             callback: function (doc) {
+                console.log("done")
+                doc
                 const blob = doc.output("bloburl")
-                chrome.tabs.create({url: blob.toString()})
+                console.log(blob.toString())
+                window.open(blob, '_blank')!.focus()
             },
         })
     }
@@ -50,82 +46,13 @@ export class Builder {
     async addPage(src: string) {
         let dom = new DOMParser().parseFromString(src, "text/html")
 
-        // retrieve css
-        let links = dom.getElementsByTagName("link")
-        for (const l in links) {
-            console.log(links[l].href)
-            if (links[l].href) {
-                if (this.assetCache[links[l].href] === undefined) {
-                    const original = await this.getAsset(sanitizePath(links[l].href))
-                    const processed = await this.processStylesheet(original)
-                    const url = URL.createObjectURL(new Blob([processed]))
-                    this.assetCache[links[l].href] = url
-                }
-                links[l].href = this.assetCache[links[l].href]
-            }
-        }
+        // forge location
+        let base = dom.createElement("base")
+        base.href = "https://ebooks.cenreader.com/v1/reader/stream/86f62498-13f4-4c7a-805c-4c1eab84115b/14/content/bd_ch_25_sect_02_01.html"
 
-        // retrieve images
-        let imgs = dom.getElementsByTagName("img")
-        for (const i in imgs) {
-            if (imgs[i].src) {
-                if (this.assetCache[imgs[i].src] === undefined) {
-                    const imgAsset = await this.getAsset(sanitizePath(imgs[i].src))
-                    const url = URL.createObjectURL(new Blob([imgAsset]))
-                    this.assetCache[imgs[i].src] = url
-                }
-                imgs[i].src = this.assetCache[imgs[i].src]
-            }
-        }
+        let head = dom.head
+        head.appendChild(base)
 
         this.pages.push(dom)
-    }
-
-    private async processStylesheet(
-        stylesheet: string,
-    ): Promise<string> {
-        const urlRegex = /url\(['"]?([^'"()]+)['"]?\)/g
-        const matches = stylesheet.matchAll(urlRegex)
-        let lastIndex = 0
-        let result = ''
-      
-        for (const match of matches) {
-            const [fullMatch, url] = match
-            const { index } = match
-
-            const s = url.split(".")
-            if (s[s.length-1] === "woff" || s[s.length-1] === "ttf" || s[s.length-1] === "eot") continue
-            if (index === undefined) continue
-            
-            result += stylesheet.slice(lastIndex, index)
-            
-            if (this.assetCache[url] === undefined) {
-                const newAsset = await this.getAsset(sanitizeCssPath(url))
-                const processedUrl = URL.createObjectURL(new Blob([newAsset]))
-                this.assetCache[url] = processedUrl
-            }
-            result += `url(${this.assetCache[url]})`
-        
-            lastIndex = index + fullMatch.length
-        }
-        result += stylesheet.slice(lastIndex)
-        return result;
-    }
-
-    private async getAsset(path: string): Promise<any> {
-        return new Promise((resolve) => {
-            chrome.runtime.sendMessage({
-                type: "getAsset", 
-                kpId: this.kpId, 
-                signature: this.signature, 
-                policy: this.policy, 
-                bookId: this.bookId, 
-                version: this.version, 
-                path: path}, 
-                response => {
-                    resolve(response)
-                }
-            )
-        })
     }
 }

@@ -1,36 +1,53 @@
-import { getAsset, getAuthorization, getBookData, getBookId, getStructure } from "./requests"
-import { parseCookies } from "./helper"
-
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     asyncEventHandler(request, sendResponse)
     return true
 })
 
 async function asyncEventHandler(request: any, sendResponse: (response?: any) => void) {
-    if (request.type == "getAuthorization") {
+    if (request.type == "openBook") {
         try {
-            const url = new URL(request.launchUrl)
-            const isbn = url.searchParams.get("eISBN")
-            const data = await getAuthorization(request.launchUrl)
-            const cfCookies = parseCookies(data.cookies)
-            const bookId = await getBookId(isbn!)
-            const bookData = await getBookData(bookId, data.auth)
-            const version = bookData[0].books[0].version
-            const structure = await getStructure(cfCookies["CloudFront-Key-Pair-Id"], cfCookies["CloudFront-Signature"], cfCookies["CloudFront-Policy"], bookId, version, data.auth)
-            sendResponse(structure)
+            await openBook(request.launchUrl)
+            sendResponse()
         }
         catch (e) {
             console.log(e)
         }
     }
-    if (request.type == "getAsset") {
-        try {
-            const res = await getAsset(request.kpId, request.signature, request.policy, request.bookId, request.version, request.path)
-            sendResponse(res)
-        }
-        catch (e) {
-            console.log(e)
-            sendResponse(e)
-        }
-    }
+}
+
+async function openBook(launchUrl: string) {
+    const tab = await chrome.tabs.create({ url: launchUrl })
+
+    await new Promise<void>((resolve) => {
+        chrome.webRequest.onCompleted.addListener(
+            function listener(details) {
+                if (details.statusCode === 200) {
+                    const injectionScript = () => {
+                        const script = document.createElement("script")
+                        script.src = chrome.runtime.getURL("js/content.js")
+
+                        let mountPoint = document.createElement("div")
+                        mountPoint.id = "contentroot"
+                        document.body.insertAdjacentElement("afterbegin", mountPoint)
+
+                        script.onload = () => {
+                            window.renderContent()
+                        }
+
+                        document.body.appendChild(script)
+                    }
+                
+                    chrome.scripting.executeScript({
+                        target: {tabId: tab.id!},
+                        func: injectionScript,
+                    })
+    
+                    console.log("injected")
+                    chrome.webRequest.onCompleted.removeListener(listener)
+                    resolve()
+                }
+            },
+            { urls: ['https://ebooks.cenreader.com/v1/reader/*.html'], tabId: tab.id },
+        )
+    })
 }

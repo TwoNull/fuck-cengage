@@ -5,8 +5,12 @@ const srcDir = path.join(__dirname, "..", "src");
 
 module.exports = {
     entry: {
-      popup: path.join(srcDir, 'popup.tsx'),
-      background: path.join(srcDir, 'background.ts'),
+        popup: path.join(srcDir, 'popup.tsx'),
+        content: {
+            import: path.join(srcDir, 'content.tsx'),
+            chunkLoading: false,
+        },
+        background: path.join(srcDir, 'background.ts'),
     },
     output: {
         path: path.join(__dirname, "../dist/js"),
@@ -22,9 +26,6 @@ module.exports = {
         ],
     },
     resolve: {
-        fallback: {
-            "path": require.resolve("path-browserify"),
-        },
         extensions: [".ts", ".tsx", ".js"],
     },
     plugins: [
