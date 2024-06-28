@@ -1,10 +1,23 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { FieldValues, useForm } from "react-hook-form";
+import { Builder } from "./output/builder";
 
 function getAuth(vals: FieldValues) {
     const launchUrl = vals.link
     chrome.runtime.sendMessage({type: "getAuthorization", launchUrl: launchUrl})
+}
+
+async function getPdf(vals: FieldValues) {
+    const html = vals.html
+    try {
+        let b = new Builder("", "", "", "", "")
+        await b.addPage(html)
+        await b.generate()
+    }
+    catch (e) {
+        console.log(e)
+    }
 }
 
 function Popup () {
@@ -21,10 +34,10 @@ function Popup () {
                 <button>Get Auth Tokens</button>
             </form>
             <br />
-            {/*<form onSubmit={handleSubmit(getPdf)}>
+            <form onSubmit={handleSubmit(getPdf)}>
                 <textarea {...register("html")}/>
                 <button>Generate Pdf</button>
-            </form>*/}
+            </form>
         </div>
     );
 };

@@ -1,3 +1,5 @@
+import mime from 'mime-types'
+
 export function parseCookies(headers: string[]): {[key: string]: string} {
     let cookies: {[key: string]: string} = {}
     for (let i = 0; i < headers.length; i++) {
@@ -11,16 +13,12 @@ export function parseCookies(headers: string[]): {[key: string]: string} {
   
 export function sanitizePath(path: string): string {
     const parts = path.split('/');
-    const result: string[] = [];
   
-    for (const part of parts) {
-        if (part === '..') {
-            result.pop();
-        } else if (part !== '.') {
-            result.push(part);
-        }
-    }
-  
-    return result.join('/');
+    return parts.slice(3, parts.length).join('/');
 }
+
+export function sanitizeCssPath(path: string): string {
+    const parts = path.split('/')
   
+    return parts.slice(1, parts.length).join('/');
+}

@@ -117,6 +117,7 @@ export async function getStructure(kpId: string, signature: string, policy: stri
 
 export async function getAsset(kpId: string, signature: string, policy: string, bookId: string, version: string, path: string) {
     const res = await axios.get(`https://ebooks.cenreader.com/v1/reader/stream/${bookId}/${version}/${path}`, {
+        responseType: "arraybuffer",
         headers: {
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
             'Accept-Language': 'en-US,en;q=0.9',
@@ -133,7 +134,7 @@ export async function getAsset(kpId: string, signature: string, policy: string, 
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"macOS"'
         }
-    });
+    })
     if (res.status === 200) {
         return res.data
     }

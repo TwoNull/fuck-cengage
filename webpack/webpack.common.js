@@ -12,14 +12,6 @@ module.exports = {
         path: path.join(__dirname, "../dist/js"),
         filename: "[name].js",
     },
-    optimization: {
-        splitChunks: {
-            name: "vendor",
-            chunks(chunk) {
-              return chunk.name !== 'background';
-            }
-        },
-    },
     module: {
         rules: [
             {
@@ -30,6 +22,9 @@ module.exports = {
         ],
     },
     resolve: {
+        fallback: {
+            "path": require.resolve("path-browserify"),
+        },
         extensions: [".ts", ".tsx", ".js"],
     },
     plugins: [

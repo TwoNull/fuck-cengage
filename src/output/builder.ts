@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf'
-import { sanitizePath } from '../helper'
-import { getAsset } from '../requests'
+import { sanitizeCssPath, sanitizePath } from '../helper'
 
 export class Builder {
     private kpId: string
@@ -29,6 +28,8 @@ export class Builder {
             unit: "px",
             format: "letter",
         })
+
+        console.log(this.pages[0].documentElement)
     
         doc.html(this.pages[0].documentElement, {
             html2canvas: {
@@ -52,24 +53,29 @@ export class Builder {
         // retrieve css
         let links = dom.getElementsByTagName("link")
         for (const l in links) {
-            if (this.assetCache[links[l].href] === undefined) {
-                const original = await getAsset(this.kpId, this.signature, this.policy, this.bookId, this.version, sanitizePath(links[l].href))
-                const processed = await this.processStylesheet(original)
-                const url = URL.createObjectURL(new Blob([processed]))
-                this.assetCache[links[l].href] = url
+            console.log(links[l].href)
+            if (links[l].href) {
+                if (this.assetCache[links[l].href] === undefined) {
+                    const original = await this.getAsset(sanitizePath(links[l].href))
+                    const processed = await this.processStylesheet(original)
+                    const url = URL.createObjectURL(new Blob([processed]))
+                    this.assetCache[links[l].href] = url
+                }
+                links[l].href = this.assetCache[links[l].href]
             }
-            links[l].href = this.assetCache[links[l].href]
         }
 
         // retrieve images
         let imgs = dom.getElementsByTagName("img")
         for (const i in imgs) {
-            if (this.assetCache[imgs[i].src] === undefined) {
-                const imgAsset = await getAsset(this.kpId, this.signature, this.policy, this.bookId, this.version, sanitizePath(imgs[i].src))
-                const url = URL.createObjectURL(new Blob([imgAsset]))
-                this.assetCache[imgs[i].src] = url
+            if (imgs[i].src) {
+                if (this.assetCache[imgs[i].src] === undefined) {
+                    const imgAsset = await this.getAsset(sanitizePath(imgs[i].src))
+                    const url = URL.createObjectURL(new Blob([imgAsset]))
+                    this.assetCache[imgs[i].src] = url
+                }
+                imgs[i].src = this.assetCache[imgs[i].src]
             }
-            imgs[i].src = this.assetCache[imgs[i].src]
         }
 
         this.pages.push(dom)
@@ -89,13 +95,12 @@ export class Builder {
 
             const s = url.split(".")
             if (s[s.length-1] === "woff" || s[s.length-1] === "ttf" || s[s.length-1] === "eot") continue
-
             if (index === undefined) continue
             
             result += stylesheet.slice(lastIndex, index)
             
-            if (this.assetCache[url] != undefined) {
-                const newAsset = await getAsset(this.kpId, this.signature, this.policy, this.bookId, this.version, sanitizePath(url))
+            if (this.assetCache[url] === undefined) {
+                const newAsset = await this.getAsset(sanitizeCssPath(url))
                 const processedUrl = URL.createObjectURL(new Blob([newAsset]))
                 this.assetCache[url] = processedUrl
             }
@@ -105,5 +110,22 @@ export class Builder {
         }
         result += stylesheet.slice(lastIndex)
         return result;
+    }
+
+    private async getAsset(path: string): Promise<any> {
+        return new Promise((resolve) => {
+            chrome.runtime.sendMessage({
+                type: "getAsset", 
+                kpId: this.kpId, 
+                signature: this.signature, 
+                policy: this.policy, 
+                bookId: this.bookId, 
+                version: this.version, 
+                path: path}, 
+                response => {
+                    resolve(response)
+                }
+            )
+        })
     }
 }
