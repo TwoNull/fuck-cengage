@@ -51,7 +51,7 @@ export class Builder {
         base.href = "https://ebooks.cenreader.com/v1/reader/stream/86f62498-13f4-4c7a-805c-4c1eab84115b/14/content/bd_ch_25_sect_02_01.html"
 
         let head = dom.head
-        head.appendChild(base)
+        head.prepend(base)
 
         this.pages.push(dom)
     }
