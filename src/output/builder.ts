@@ -10,6 +10,8 @@ export class Builder {
     async generate() {
         console.log("generating")
 
+        console.log(this.pages[0].documentElement)
+
         const doc = new jsPDF({
             orientation: "p",
             unit: "mm",
@@ -46,8 +48,8 @@ export class Builder {
 
         // strip details
         let details = dom.getElementsByTagName("details")
-        for (const d in details) {
-            details[d].remove()
+        for (let i = details.length - 1; i >= 0; i--) {
+            details[i].remove();
         }
 
         this.pages.push(dom)
