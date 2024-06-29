@@ -12,30 +12,21 @@ export class Builder {
 
         const doc = new jsPDF({
             orientation: "p",
-            unit: "px",
+            unit: "mm",
             format: "letter",
         })
-
-        console.log(this.pages[0].URL)
-
-        console.log(this.pages[0].location)
-
-        console.log(this.pages[0].documentElement)
     
         doc.html(this.pages[0].documentElement, {
+            margin: [10, 0, 10, 0],
             html2canvas: {
                 allowTaint: true,
                 useCORS: true,
-                width: 2550,
-                height: 3000,
-                windowWidth: 2550,
-                windowHeight: 3000
             },
-            windowWidth: 2550,
-            width: 2550,
+            width: 215.9,
+            windowWidth: 900,
+            autoPaging: "text",
             callback: function (doc) {
                 console.log("done")
-                doc
                 const blob = doc.output("bloburl")
                 console.log(blob.toString())
                 window.open(blob, '_blank')!.focus()
@@ -52,6 +43,12 @@ export class Builder {
 
         let head = dom.head
         head.prepend(base)
+
+        // strip details
+        let details = dom.getElementsByTagName("details")
+        for (const d in details) {
+            details[d].remove()
+        }
 
         this.pages.push(dom)
     }
