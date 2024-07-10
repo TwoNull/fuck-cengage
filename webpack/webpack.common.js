@@ -26,6 +26,9 @@ module.exports = {
         ],
     },
     resolve: {
+        alias: {
+            html2canvas: '@twonull/html2canvas'
+        },
         extensions: [".ts", ".tsx", ".js"],
     },
     plugins: [

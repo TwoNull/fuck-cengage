@@ -20,9 +20,6 @@ export class Builder {
     
         doc.html(this.pages[0].documentElement, {
             margin: [10, 0, 10, 0],
-            html2canvas: {
-                allowTaint: false,
-            },
             width: 215.9,
             windowWidth: 900,
             autoPaging: "text",
