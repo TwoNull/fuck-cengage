@@ -1,16 +1,20 @@
-import jsPDF from 'jspdf'
+import jsPDF, { HTMLFontFace } from 'jspdf'
+import { parseFontFace } from './helper'
 
 export class Builder {
     private pages: Document[]
+    private fontCache: {[key: string]: HTMLFontFace[]}
 
     constructor() {
         this.pages = []
+        this.fontCache = {}
     }
 
     async generate() {
         console.log("generating")
-
         console.log(this.pages[0].documentElement)
+
+        const fonts = Object.values(this.fontCache).flat()
 
         const doc = new jsPDF({
             orientation: "p",
@@ -22,6 +26,7 @@ export class Builder {
             margin: [10, 0, 10, 0],
             width: 215.9,
             windowWidth: 900,
+            fontFaces: fonts,
             autoPaging: "text",
             callback: function (doc) {
                 console.log("done")
@@ -46,6 +51,17 @@ export class Builder {
         let details = dom.getElementsByTagName("details")
         for (let i = details.length - 1; i >= 0; i--) {
             details[i].remove();
+        }
+
+        // get fonts
+        let links = this.pages[0].getElementsByTagName("link")
+        for (const l in links) {
+            if (links[l].rel === "stylesheet") {
+                if (this.fontCache[links[l].href] === undefined) {
+                    const stylesheet = await (await fetch(base.href + "/../" + links[l].href)).text()
+                    this.fontCache[links[l].href] = parseFontFace(stylesheet)
+                }
+            }
         }
 
         this.pages.push(dom)
