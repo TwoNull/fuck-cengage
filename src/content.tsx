@@ -12,9 +12,6 @@ declare global {
 async function getPdf(vals: FieldValues) {
     const html = vals.html
     try {
-        let b = new Builder()
-        await b.addPage(html)
-        await b.generate()
     }
     catch (e) {
         console.log(e)

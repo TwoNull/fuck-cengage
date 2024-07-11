@@ -42,7 +42,6 @@ async function openBook(launchUrl: string) {
                         func: injectionScript,
                     })
     
-                    console.log("injected")
                     chrome.webRequest.onCompleted.removeListener(listener)
                     resolve()
                 }
