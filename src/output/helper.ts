@@ -15,7 +15,7 @@ export function sanitizeCssPath(path: string): string {
 export function parseFontFace(css: string): HTMLFontFace[] {
     const fontFaces: HTMLFontFace[] = []
     const fontFaceRegex = /@font-face\s*{([^}]*)}/g
-    const propertyRegex = /\s*([\w-]+)\s*:\s*([^;]+);/g
+    const propertyRegex = /\s*([\w-]+)\s*:\s*([^;}]+)(?:;|\s*$|\s*})/g
   
     let match
     while ((match = fontFaceRegex.exec(css)) !== null) {

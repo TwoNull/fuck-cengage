@@ -53,12 +53,19 @@ export class Builder {
             details[i].remove();
         }
 
+        // strip small caps
+        let smallcaps = dom.getElementsByClassName("smallcaps")
+        for (let i = smallcaps.length - 1; i >= 0; i--) {
+            smallcaps[i].className = ""
+        }
+
         // get fonts
-        let links = this.pages[0].getElementsByTagName("link")
+        let links = dom.getElementsByTagName("link")
         for (const l in links) {
             if (links[l].rel === "stylesheet") {
                 if (this.fontCache[links[l].href] === undefined) {
-                    const stylesheet = await (await fetch(base.href + "/../" + links[l].href)).text()
+                    const stylesheet = await (await fetch(links[l].href)).text()
+                    console.log(stylesheet)
                     this.fontCache[links[l].href] = parseFontFace(stylesheet)
                 }
             }
