@@ -54,9 +54,14 @@ export class Builder {
         }
 
         // strip small caps
-        let smallcaps = dom.getElementsByClassName("smallcaps")
+        let smallcaps = dom.getElementsByClassName("smallcaps") as any
         for (let i = smallcaps.length - 1; i >= 0; i--) {
             smallcaps[i].className = ""
+            try {
+                smallcaps[i].style = "text-transform: uppercase"
+            } catch {
+                console.log("error inline styling element")
+            }
         }
 
         // get fonts
