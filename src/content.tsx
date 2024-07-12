@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { FieldValues, useForm } from "react-hook-form";
 import { Builder } from "./output/builder";
@@ -21,12 +21,24 @@ function Dashboard(props: {eISBN: string}) {
     const [bookData, setBookData] = useState<any>(undefined)
     const [structure, setStructure] = useState<any>(undefined)
 
-    async function generatePdf(vals: FieldValues) {
+    async function generatePdf(vals: FieldValues, e?: React.BaseSyntheticEvent) {
+        e!.preventDefault()
         const builder = new Builder()
         const baseUrl = `https://ebooks.cenreader.com/v1/reader/stream/${bookData.book_content_id}/${bookData.version}/`
-        for (let v in vals) {
-            const html = await (await fetch(baseUrl + vals[v])).text()
-            await builder.addPage(html, baseUrl + vals[v])
+
+        if (vals.download === "selected") {
+            for (let v in vals) {
+                if (vals[v].html) {
+                    const html = await (await fetch(baseUrl + v)).text()
+                    await builder.addPage(html, baseUrl + v)
+                }
+            }
+        }
+        if (vals.download === "all") {
+            for (let v in vals) {
+                const html = await (await fetch(baseUrl + v)).text()
+                await builder.addPage(html, baseUrl + v)
+            }
         }
         await builder.generate()
     }
@@ -48,16 +60,29 @@ function Dashboard(props: {eISBN: string}) {
         fetchBookData(props.eISBN)
     }, [])
 
-    function buildTOC(content: any) {
-        if (content.isPage) {
+    function buildTOC(element: any) {
+        if (element.isPage === "true") {
             return (
-                <option value={content.localPath} {...register(content.path)}>{content.title}</option>
+                <div style={{
+                    paddingLeft: "4px",
+                }}>
+                    <input type="checkbox" {...register(element.localPath)} />
+                    <label>{element.title}</label>
+                </div>
             )
         }
         return (
-            <optgroup label={content.title}>
-                {content.content ? buildTOC(content.content) : <></>}
-            </optgroup>
+            <div style={{
+                display: "flex",
+                flexDirection: "column",
+                paddingLeft: "4px"
+            }}>
+                <p style={{
+                    marginBlockStart: 0,
+                    marginBlockEnd: 0
+                }}>{element.title}</p>
+                {element.content ? element.content.map((element: any) => buildTOC(element)) : <></>}
+            </div>
         )
     }
 
@@ -81,16 +106,37 @@ function Dashboard(props: {eISBN: string}) {
                 justifyContent: "center",
                 padding: "4px",
                 backgroundColor: "rgb(255, 255, 255)",
+                maxHeight: "100vh"
             }}>
                 <h2>Cengage Downloader V1</h2>
                 <p>ISBN: {props.eISBN}</p>
                 <form onSubmit={handleSubmit(generatePdf)}>
+                {structure ? 
                     <div>
-                        <label>Select sections to download:</label>
-                        <select>
-                            {structure.map((content: any) => {buildTOC(content)})}
-                        </select>
+                        <p style={{
+                            marginBlockStart: 0,
+                            marginBlockEnd: 0
+                        }}>Select sections to download:</p>
+                        <div style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            overflowY: "scroll",
+                        }}>
+                            {structure.map((element: any) => buildTOC(element))}
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            gap: "4px"
+                        }}>
+                            <button type="submit" value="selected" {...register("download")}>Download</button>
+                            <button type="submit" value="all" {...register("download")}>Download All</button>
+                        </div>
                     </div>
+                    :
+                    <div>
+                        <p>Loading Contents...</p>
+                    </div>
+                }
                 </form>
             </div>
         </div>
