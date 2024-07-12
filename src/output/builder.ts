@@ -30,14 +30,11 @@ export class Builder {
                     autoPaging: "text",
                     callback: async function (doc) {
                         const arrayBuffer = doc.output("arraybuffer")
-                        console.log("array buffer complete")
                         const pdf = await PDFDocument.load(arrayBuffer)
-                        console.log("pdf loaded")
                         const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices())
                         copiedPages.forEach((page) => {
                             mergedPdf.addPage(page)
                         })
-                        console.log("done")
                         resolve()
                     },
                 })
@@ -48,30 +45,6 @@ export class Builder {
         const url = URL.createObjectURL(new Blob([bytes], {type: 'application/pdf'}))
         console.log(url)
         window.open(url, '_blank')!.focus()
-    }
-
-    async generateSingle() {
-        const fonts = Object.values(this.fontCache).flat()
-
-        const doc = new jsPDF({
-            orientation: "p",
-            unit: "mm",
-            format: "letter",
-        })
-    
-        doc.html(this.pages[0].documentElement, {
-            margin: [10, 0, 10, 0],
-            width: 215.9,
-            windowWidth: 900,
-            fontFaces: fonts,
-            autoPaging: "text",
-            callback: function (doc) {
-                console.log("done")
-                const blob = doc.output("bloburl")
-                console.log(blob.toString())
-                window.open(blob, '_blank')!.focus()
-            },
-        })
     }
 
     async addPage(src: string, href: string) {
