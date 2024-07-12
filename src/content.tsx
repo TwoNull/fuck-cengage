@@ -117,7 +117,10 @@ function Dashboard(props: {eISBN: string}) {
                 <p>ISBN: {props.eISBN}</p>
                 <form onSubmit={handleSubmit(generatePdf)}>
                 {structure ? 
-                    <div>
+                    <div style={{
+                        display: "flex",
+                        gap: "4px"
+                    }}>
                         <p style={{
                             marginBlockStart: 0,
                             marginBlockEnd: 0
