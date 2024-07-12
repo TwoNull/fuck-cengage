@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { FieldValues, useForm } from "react-hook-form";
 import { Builder } from "./output/builder";
@@ -29,16 +29,20 @@ function Dashboard(props: {eISBN: string}) {
 
         if (vals.download === "selected") {
             for (let v in vals) {
-                if (vals[v]) {
-                    const html = await (await fetch(baseUrl + v.replace("%2E", "."))).text()
-                    await builder.addPage(html, baseUrl + v)
+                if (v != "download" && vals[v]) {
+                    const unescaped = v.replace("%2E", ".")
+                    const html = await (await fetch(baseUrl + unescaped)).text()
+                    await builder.addPage(html, baseUrl + unescaped)
                 }
             }
         }
         if (vals.download === "all") {
             for (let v in vals) {
-                const html = await (await fetch(baseUrl + v.replace("%2E", "."))).text()
-                await builder.addPage(html, baseUrl + v)
+                if (v != "download") {
+                    const unescaped = v.replace("%2E", ".")
+                    const html = await (await fetch(baseUrl + unescaped)).text()
+                    await builder.addPage(html, baseUrl + unescaped)
+                }
             }
         }
         await builder.generate()
@@ -90,7 +94,7 @@ function Dashboard(props: {eISBN: string}) {
     return(
         <div style={{
             position: "absolute",
-            zIndex: 10,
+            zIndex: 10000,
             height: "100vh", 
             width: "100vw", 
             display: "flex",
@@ -99,15 +103,15 @@ function Dashboard(props: {eISBN: string}) {
             backgroundColor: "rgba(0, 0, 0, 0.4)",
         }}>
             <div style={{
-                zIndex: 11,
+                zIndex: 10001,
                 display: "flex",
                 flexDirection: "column",
                 gap: "4px",
                 alignItems: "center",
-                justifyContent: "center",
                 padding: "4px",
                 backgroundColor: "rgb(255, 255, 255)",
-                maxHeight: "100vh"
+                maxHeight: "100%",
+                overflowY: "scroll",
             }}>
                 <h2>Cengage Downloader V1</h2>
                 <p>ISBN: {props.eISBN}</p>
@@ -120,17 +124,16 @@ function Dashboard(props: {eISBN: string}) {
                         }}>Select sections to download:</p>
                         <div style={{
                             display: "flex",
-                            flexDirection: "column",
-                            overflowY: "scroll",
+                            gap: "4px"
                         }}>
-                            {structure.map((element: any) => buildTOC(element))}
+                            <button type="submit" value="all" {...register("download")}>Download All</button>
+                            <button type="submit" value="selected" {...register("download")}>Download Selected</button>
                         </div>
                         <div style={{
                             display: "flex",
-                            gap: "4px"
+                            flexDirection: "column",
                         }}>
-                            <button type="submit" value="selected" {...register("download")}>Download</button>
-                            <button type="submit" value="all" {...register("download")}>Download All</button>
+                            {structure.map((element: any) => buildTOC(element))}
                         </div>
                     </div>
                     :

@@ -30,11 +30,14 @@ export class Builder {
                     autoPaging: "text",
                     callback: async function (doc) {
                         const arrayBuffer = doc.output("arraybuffer")
+                        console.log("array buffer complete")
                         const pdf = await PDFDocument.load(arrayBuffer)
+                        console.log("pdf loaded")
                         const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices())
                         copiedPages.forEach((page) => {
                             mergedPdf.addPage(page)
                         })
+                        console.log("done")
                         resolve()
                     },
                 })
@@ -42,7 +45,8 @@ export class Builder {
         }
 
         const bytes = await mergedPdf.save()
-        const url = URL.createObjectURL(new Blob([bytes]))
+        const url = URL.createObjectURL(new Blob([bytes], {type: 'application/pdf'}))
+        console.log(url)
         window.open(url, '_blank')!.focus()
     }
 
@@ -86,15 +90,15 @@ export class Builder {
             details[i].remove();
         }
 
+        // create smallcaps style
+        let style = dom.createElement("style")
+        style.appendChild(document.createTextNode(".pdfsmallcaps { text-transform: uppercase; }"));
+        head.appendChild(style)
+
         // replace small caps
-        let smallcaps = dom.getElementsByClassName("smallcaps") as any
+        let smallcaps = dom.getElementsByClassName("smallcaps")
         for (let i = smallcaps.length - 1; i >= 0; i--) {
-            smallcaps[i].className = ""
-            try {
-                smallcaps[i].style = "text-transform: uppercase"
-            } catch {
-                console.log("error inline styling element")
-            }
+            smallcaps[i].className = "pdfsmallcaps"
         }
 
         // get fonts
