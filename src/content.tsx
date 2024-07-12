@@ -25,18 +25,19 @@ function Dashboard(props: {eISBN: string}) {
         e!.preventDefault()
         const builder = new Builder()
         const baseUrl = `https://ebooks.cenreader.com/v1/reader/stream/${bookData.book_content_id}/${bookData.version}/`
+        console.log(vals)
 
         if (vals.download === "selected") {
             for (let v in vals) {
-                if (vals[v].html) {
-                    const html = await (await fetch(baseUrl + v)).text()
+                if (vals[v]) {
+                    const html = await (await fetch(baseUrl + v.replace("%2E", "."))).text()
                     await builder.addPage(html, baseUrl + v)
                 }
             }
         }
         if (vals.download === "all") {
             for (let v in vals) {
-                const html = await (await fetch(baseUrl + v)).text()
+                const html = await (await fetch(baseUrl + v.replace("%2E", "."))).text()
                 await builder.addPage(html, baseUrl + v)
             }
         }
@@ -66,7 +67,7 @@ function Dashboard(props: {eISBN: string}) {
                 <div style={{
                     paddingLeft: "4px",
                 }}>
-                    <input type="checkbox" {...register(element.localPath)} />
+                    <input type="checkbox" {...register(element.localPath.replace(".", "%2E"))} />
                     <label>{element.title}</label>
                 </div>
             )
