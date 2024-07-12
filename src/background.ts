@@ -17,12 +17,14 @@ async function asyncEventHandler(request: any, sendResponse: (response?: any) =>
 
 async function openBook(launchUrl: string) {
     const tab = await chrome.tabs.create({ url: launchUrl })
+    const url = new URL(launchUrl)
+    const isbn = url.searchParams.get("eISBN")
 
     await new Promise<void>((resolve) => {
         chrome.webRequest.onCompleted.addListener(
             function listener(details) {
                 if (details.statusCode === 200) {
-                    const injectionScript = () => {
+                    const injectionScript = (eISBN: string) => {
                         const script = document.createElement("script")
                         script.src = chrome.runtime.getURL("js/content.js")
 
@@ -31,7 +33,7 @@ async function openBook(launchUrl: string) {
                         document.body.insertAdjacentElement("afterbegin", mountPoint)
 
                         script.onload = () => {
-                            window.renderContent()
+                            window.renderContent(eISBN)
                         }
 
                         document.body.appendChild(script)
@@ -40,6 +42,7 @@ async function openBook(launchUrl: string) {
                     chrome.scripting.executeScript({
                         target: {tabId: tab.id!},
                         func: injectionScript,
+                        args: [isbn!],
                     })
     
                     chrome.webRequest.onCompleted.removeListener(listener)
